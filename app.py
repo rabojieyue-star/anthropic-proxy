@@ -4,7 +4,18 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*", supports_credentials=False)
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    return response
+
+@app.route("/api/anthropic-proxy", methods=["OPTIONS"])
+def anthropic_proxy_options():
+    return "", 204
 
 @app.post("/api/anthropic-proxy")
 def anthropic_proxy():
