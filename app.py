@@ -41,16 +41,17 @@ def anthropic_proxy():
             request_args["system"] = system
         if temperature is not None:
             request_args["temperature"] = temperature
-        response = client.messages.create(**request_args)
+        with client.messages.stream(**request_args) as stream:
+            final_message = stream.get_final_message()
         text = "".join(
-            block.text for block in response.content if getattr(block, "type", None) == "text"
+            block.text for block in final_message.content if getattr(block, "type", None) == "text"
         )
         return jsonify(
             {
                 "text": text,
                 "usage": {
-                    "input_tokens": response.usage.input_tokens,
-                    "output_tokens": response.usage.output_tokens,
+                    "input_tokens": final_message.usage.input_tokens,
+                    "output_tokens": final_message.usage.output_tokens,
                 },
             }
         )
